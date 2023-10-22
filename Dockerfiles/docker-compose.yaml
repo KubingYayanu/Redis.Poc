@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  redis:
+    image: poc/redis:7.2.2
+    build:
+      context: ./Redis/
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - redis-poc-data:/data
+    environment:
+      REDIS_INITUSER_USERNAME: root
+      REDIS_INITUSER_PASSWORD: ${PWD}
+    networks:
+      - default
+    expose:
+      - 6379
+    ports:
+      - 6000:6379
+
+volumes:
+  redis-poc-data:
+
+networks:
+  default:
+    name: reids_poc
