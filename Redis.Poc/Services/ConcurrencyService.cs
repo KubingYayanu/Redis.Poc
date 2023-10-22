@@ -31,13 +31,13 @@ namespace Redis.Poc.Services
                 var expiry = TimeSpan.FromSeconds(30);
 
                 await RedisDatabase.SetAsync(Key, 0, expiry);
-                Parallel.For(0, 50, Increase);
+                await Increase();
 
-                // await RedisDatabase.SetAsync(KeyWithLock, 0, expiry);
-                // Parallel.For(0, 50, IncreaseWithLock);
+                await RedisDatabase.SetAsync(KeyWithLock, 0, expiry);
+                await IncreaseWithLock();
 
-                // await RedisDatabase.SetAsync(KeyRetry, 0, expiry);
-                // Parallel.For(0, 50, IncreaseWithRetry);
+                await RedisDatabase.SetAsync(KeyWithLockRetry, 0, expiry);
+                await IncreaseWithLockRetry();
             }
             catch (Exception ex)
             {
@@ -47,78 +47,118 @@ namespace Redis.Poc.Services
             await Task.CompletedTask;
         }
 
-        private void Increase(int x)
-        {
-            var value = RedisDatabase.Get<int>(Key);
-            RedisDatabase.Set(Key, ++value);
-
-            _logger.LogInformation(
-                message: "Thread: {Thread}, Key: {Key}. Set value: {Value}",
-                args: new object[] { Thread.CurrentThread.ManagedThreadId, Key, value });
-        }
-
-        private void IncreaseWithLock(int x)
+        private async Task Increase()
         {
             var expiry = TimeSpan.FromSeconds(30);
-            using (var redLock = _redisConnection.RedisLockFactory.CreateLock(KeyWithLock, expiry))
+            var tasks = new List<Task>();
+            for (int i = 0; i < 50; i++)
             {
-                if (redLock.IsAcquired)
+                var task = Task.Run(async () =>
                 {
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Lock start at {Now}",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock, DateTime.Now });
-
-                    var value = RedisDatabase.Get<int>(KeyWithLock);
-                    RedisDatabase.Set(KeyWithLock, ++value);
+                    var value = await RedisDatabase.GetAsync<int>(Key);
+                    await RedisDatabase.SetAsync(Key, ++value, expiry);
 
                     _logger.LogInformation(
                         message: "Thread: {Thread}, Key: {Key}. Set value: {Value}",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock, value });
-
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Lock end at {Now}",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock, DateTime.Now });
-                }
-                else
-                {
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Not get the locker",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock });
-                }
+                        args: new object[] { Thread.CurrentThread.ManagedThreadId, Key, value });
+                });
+                tasks.Add(task);
             }
+
+            await Task.WhenAll(tasks);
         }
 
-        private void IncreaseWithLockRetry(int x)
+        private async Task IncreaseWithLock()
+        {
+            var expiry = TimeSpan.FromSeconds(30);
+            var tasks = new List<Task>();
+            for (int i = 0; i < 50; i++)
+            {
+                var task = Task.Run(async () =>
+                {
+                    using (var redLock = await _redisConnection.RedisLockFactory.CreateLockAsync(
+                               resource: KeyWithLock,
+                               expiryTime: expiry))
+                    {
+                        if (redLock.IsAcquired)
+                        {
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Lock start at {Now}",
+                                args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock, DateTime.Now });
+
+                            var value = await RedisDatabase.GetAsync<int>(KeyWithLock);
+                            await RedisDatabase.SetAsync(KeyWithLock, ++value, expiry);
+
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Set value: {Value}",
+                                args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock, value });
+
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Lock end at {Now}",
+                                args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock, DateTime.Now });
+                        }
+                        else
+                        {
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Not get the locker",
+                                args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLock });
+                        }
+                    }
+                });
+                tasks.Add(task);
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task IncreaseWithLockRetry()
         {
             var expiry = TimeSpan.FromSeconds(30);
             var wait = TimeSpan.FromSeconds(10);
             var retry = TimeSpan.FromSeconds(1);
-            using (var redLock = _redisConnection.RedisLockFactory.CreateLock(KeyWithLockRetry, expiry, wait, retry))
+            var tasks = new List<Task>();
+            for (int i = 0; i < 50; i++)
             {
-                if (redLock.IsAcquired)
+                var task = Task.Run(async () =>
                 {
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Lock start at {Now}",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry, DateTime.Now });
+                    using (var redLock =
+                           await _redisConnection.RedisLockFactory.CreateLockAsync(
+                               resource: KeyWithLockRetry,
+                               expiryTime: expiry,
+                               waitTime: wait,
+                               retryTime: retry))
+                    {
+                        if (redLock.IsAcquired)
+                        {
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Lock start at {Now}",
+                                args: new object[]
+                                    { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry, DateTime.Now });
 
-                    var value = RedisDatabase.Get<int>(KeyWithLockRetry);
-                    RedisDatabase.Set(KeyWithLockRetry, ++value);
+                            var value = await RedisDatabase.GetAsync<int>(KeyWithLockRetry);
+                            await RedisDatabase.SetAsync(KeyWithLockRetry, ++value, expiry);
 
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Set value: {Value}",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry, value });
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Set value: {Value}",
+                                args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry, value });
 
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Lock end at {Now}",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry, DateTime.Now });
-                }
-                else
-                {
-                    _logger.LogInformation(
-                        message: "Thread: {Thread}, Key: {Key}. Not get the locker",
-                        args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry });
-                }
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Lock end at {Now}",
+                                args: new object[]
+                                    { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry, DateTime.Now });
+                        }
+                        else
+                        {
+                            _logger.LogInformation(
+                                message: "Thread: {Thread}, Key: {Key}. Not get the locker",
+                                args: new object[] { Thread.CurrentThread.ManagedThreadId, KeyWithLockRetry });
+                        }
+                    }
+                });
+                tasks.Add(task);
             }
+
+            await Task.WhenAll(tasks);
         }
     }
 }
