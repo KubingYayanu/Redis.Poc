@@ -17,24 +17,24 @@ namespace Redis.Poc.Helpers
             return await db.KeyExistsAsync(key);
         }
 
-        public static void Set<T>(
+        public static bool Set<T>(
             this IDatabase db,
             string key,
             T value,
             TimeSpan? expiry = default)
         {
             var cacheData = Serialize(value);
-            db.StringSet(key, cacheData, expiry);
+            return db.StringSet(key, cacheData, expiry);
         }
 
-        public static async Task SetAsync<T>(
+        public static async Task<bool> SetAsync<T>(
             this IDatabase db,
             string key,
             T value,
             TimeSpan? expiry = default)
         {
             var cacheData = Serialize(value);
-            await db.StringSetAsync(key, cacheData, expiry);
+            return await db.StringSetAsync(key, cacheData, expiry);
         }
 
         public static T Get<T>(
