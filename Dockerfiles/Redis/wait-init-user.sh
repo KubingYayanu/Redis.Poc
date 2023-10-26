@@ -1,7 +1,7 @@
 #!/bin/bash
 # 透過迴圈嘗試建立 redis User, 避免 redis server 尚未完成啟動就呼叫 redis-cli
 
-acl_folder="/data/conf/" 
+acl_folder="/data/conf/"
 acl_file_path="/data/conf/users.acl"
 
 # 檢查 /data/conf/users.acl 是否不存在
