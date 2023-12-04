@@ -1,12 +1,11 @@
-﻿using RedLockNet.SERedis;
-using StackExchange.Redis;
+﻿using RedLockNet;
 
 namespace Redis.Poc.RedisCache
 {
     public interface IRedisConnection
     {
-        IDatabase GetDatabase(int db = 0);
+        IRedisDatabase GetDatabase(int db = 0);
 
-        RedLockFactory RedisLockFactory { get; }
+        IDistributedLockFactory RedisLockFactory { get; }
     }
 }

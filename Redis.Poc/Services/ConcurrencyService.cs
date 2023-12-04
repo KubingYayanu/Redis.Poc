@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Redis.Poc.Helpers;
 using Redis.Poc.RedisCache;
-using StackExchange.Redis;
 
 namespace Redis.Poc.Services
 {
@@ -22,7 +20,7 @@ namespace Redis.Poc.Services
             _logger = logger;
         }
 
-        private IDatabase RedisDatabase => _redisConnection.GetDatabase();
+        private IRedisDatabase RedisDatabase => _redisConnection.GetDatabase();
 
         public async Task Run()
         {

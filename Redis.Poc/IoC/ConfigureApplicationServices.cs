@@ -14,6 +14,7 @@ namespace Redis.Poc.IoC
             services.AddScoped<IConcurrencyService, ConcurrencyService>();
 
             services.AddSingleton<IRedisConnection, RedisConnection>();
+            services.AddScoped<IRedisDatabase, RedisDatabase>();
 
             return services;
         }
