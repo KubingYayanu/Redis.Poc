@@ -1,0 +1,9 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=73838d43_002D65aa_002D4242_002Da88f_002De2503011150c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="RedisLockFactory_CreateLock_ReturnIsAcquired" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7463F38C-BD8E-4C34-80DB-48FECD09ED69::net8.0::Redis.Poc.Tests.RedisCache.RedisConnectionTests.RedisLockFactory_CreateLock_ReturnIsAcquired&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7463F38C-BD8E-4C34-80DB-48FECD09ED69::net8.0::Redis.Poc.Tests.RedisCache.RedisConnectionTests.RedisDatabase_IsExist_ReturnTrue&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7463F38C-BD8E-4C34-80DB-48FECD09ED69::net8.0::Redis.Poc.Tests.RedisCache.RedisConnectionTests.RedisDatabase_Get_ReturnModel&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7463F38C-BD8E-4C34-80DB-48FECD09ED69::net8.0::Redis.Poc.Tests.RedisCache.RedisConnectionTests.RedisDatabase_Set_DataSetAndReturnModel&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
