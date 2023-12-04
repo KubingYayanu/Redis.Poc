@@ -11,11 +11,26 @@ namespace Redis.Poc.RedisCache
         private const string ConnectionStringSection = "Redis:ConnectionString";
 
         private readonly Lazy<ConnectionMultiplexer> _connection;
+        private readonly IConfiguration _config;
 
         public RedisConnection(IConfiguration config)
         {
-            var connectionString = config.GetValue<string>(ConnectionStringSection);
-            _connection = new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(connectionString));
+            _config = config;
+            _connection = new Lazy<ConnectionMultiplexer>(() =>
+            {
+                var option = GetConfigurationOptions();
+                return ConnectionMultiplexer.Connect(option);
+            });
+        }
+
+        private ConfigurationOptions GetConfigurationOptions()
+        {
+            var connectionString = _config.GetValue<string>(ConnectionStringSection);
+            var option = new ConfigurationOptions
+            {
+                EndPoints = { connectionString }
+            };
+            return option;
         }
 
         private ConnectionMultiplexer Connection => _connection.Value;

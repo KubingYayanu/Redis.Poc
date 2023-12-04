@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Redis.Poc.Helpers;
 using Redis.Poc.JsonConverters;
 using StackExchange.Redis;
 
@@ -43,7 +42,7 @@ namespace Redis.Poc.RedisCache
 
         public T Get<T>(string key)
         {
-            if (Database.IsExist(key))
+            if (Database.KeyExists(key))
             {
                 var value = Database.StringGet(key);
                 return Deserialize<T>(value);
@@ -54,7 +53,7 @@ namespace Redis.Poc.RedisCache
 
         public async Task<T> GetAsync<T>(string key)
         {
-            if (await Database.IsExistAsync(key))
+            if (await Database.KeyExistsAsync(key))
             {
                 var value = await Database.StringGetAsync(key);
                 return Deserialize<T>(value);
